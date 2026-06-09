@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Série de Pagamentos | SuporteADV</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0d0d; color: #e0e0e0; padding: 24px 16px; }
+  .container { max-width: 820px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #222; }
+  h1 { font-size: 1.5rem; color: #008080; margin-bottom: 6px; }
+  .subtitle { font-size: 0.88rem; color: #888; line-height: 1.5; }
+  .brand { font-size: 0.78rem; margin-top: 8px; color: #555; }
+  .brand span.s { color: #8B00FF; font-weight: 700; }
+  .brand span.a { color: #008080; font-weight: 700; }
+
+  .card { background: #111; border-radius: 10px; border: 1px solid #222; border-left: 3px solid #8B00FF; padding: 20px 22px; margin-bottom: 14px; transition: border-left-color 0.2s; }
+  .card:hover { border-left-color: #008080; }
+  .card-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #008080; font-weight: 700; margin-bottom: 16px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } }
+  .field.full { grid-column: 1 / -1; }
+
+  .field label { display: block; font-size: 0.78rem; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .field input, .field select {
+    width: 100%; padding: 9px 11px; border: 1.5px solid #333; border-radius: 6px;
+    font-size: 0.95rem; color: #fff; background: #1a1a1a; transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: #008080; box-shadow: 0 0 0 2px rgba(0,128,128,0.2); }
+  .field select option { background: #1a1a1a; }
+
+  /* Tabs modo */
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab {
+    flex: 1; padding: 9px; border-radius: 8px; border: 1.5px solid #333;
+    font-size: 0.78rem; font-weight: 700; cursor: pointer; color: #888;
+    background: #1a1a1a; text-transform: uppercase; letter-spacing: 0.05em;
+    transition: all 0.18s; text-align: center; min-width: 100px;
+  }
+  .tab:hover { border-color: #008080; color: #008080; }
+  .tab.ativo { background: #008080; border-color: #008080; color: #fff; }
+
+  .info-box { background: #0d1a1a; border: 1px solid #1a3a3a; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 0.82rem; color: #666; line-height: 1.6; }
+  .info-box b { color: #008080; }
+
+  /* Parcelas manuais */
+  .parcela-row { display: grid; grid-template-columns: auto 1fr 1fr 36px; gap: 8px; align-items: end; margin-bottom: 8px; }
+  @media (max-width: 520px) { .parcela-row { grid-template-columns: auto 1fr 36px; } }
+
+  .btn-add {
+    background: transparent; color: #008080; border: 1.5px dashed #008080;
+    padding: 8px 16px; border-radius: 6px; font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; transition: all 0.18s; text-transform: uppercase;
+    margin-bottom: 16px; width: 100%;
+  }
+  .btn-add:hover { background: #0a1a1a; }
+
+  .btn-rem {
+    background: #1a0a0a; border: 1px solid #3a1a1a; color: #ff4444;
+    width: 36px; height: 36px; border-radius: 6px; font-size: 1rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .btn-rem:hover { background: #2a0a0a; }
+
+  .num-badge {
+    width: 28px; height: 36px; background: #1a1a1a; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; color: #555; font-weight: 700; flex-shrink: 0;
+  }
+
+  button.calcular {
+    background: #008080; color: #fff; border: none; padding: 10px 26px;
+    border-radius: 6px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.07em;
+    cursor: pointer; transition: background 0.18s, box-shadow 0.18s; text-transform: uppercase; margin-right: 10px;
+  }
+  button.calcular:hover { background: #006666; box-shadow: 0 0 10px rgba(0,128,128,0.4); }
+  button.limpar { background: transparent; color: #555; border: 1.5px solid #333; padding: 10px 18px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.18s; text-transform: uppercase; }
+  button.limpar:hover { border-color: #555; color: #888; }
+
+  /* Resultado */
+  .resultado { background: #0a1a0a; border: 1px solid #1a4a1a; border-radius: 10px; padding: 20px 22px; margin-top: 14px; display: none; }
+  .resultado.visible { display: block; }
+  .resultado-titulo { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #008080; font-weight: 700; margin-bottom: 16px; }
+
+  .res-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  @media (max-width: 520px) { .res-grid { grid-template-columns: 1fr 1fr; } }
+  .res-item label { display: block; font-size: 0.72rem; color: #555; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .res-item .valor { font-size: 1.05rem; font-weight: 700; color: #00ff00; font-family: 'Courier New', monospace; }
+  .res-item .valor.grande { font-size: 1.45rem; }
+  .res-item .valor.sec { color: #888; font-size: 0.95rem; }
+
+  .divider { border: none; border-top: 1px solid #1a3a1a; margin: 14px 0; }
+
+  /* Tabela */
+  .tabela-wrap { margin-top: 14px; overflow-x: auto; }
+  .tabela-wrap summary { cursor: pointer; color: #008080; font-size: 0.82rem; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 500px; }
+  th { text-align: left; color: #555; padding: 6px 8px; border-bottom: 1px solid #222; font-size: 0.72rem; text-transform: uppercase; }
+  td { color: #999; padding: 6px 8px; border-bottom: 1px solid #1a1a1a; }
+  tr:hover td { background: #151515; }
+  td.dest { color: #00ff00; font-weight: 700; font-family: 'Courier New', monospace; }
+  td.atrasado { color: #ff4444; }
+  td.pago { color: #555; }
+  tr.total-row td { color: #fff; font-weight: 700; background: #0d1a0d; border-top: 1px solid #333; }
+
+  .status-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  }
+  .status-badge.vencer { background: #0a1a0a; color: #00ff00; }
+  .status-badge.atrasado { background: #1a0a0a; color: #ff4444; }
+  .status-badge.hoje { background: #1a1a0a; color: #ffaa00; }
+
+  .erro { background: #1a0a0a; border: 1px solid #4a1a1a; border-radius: 8px; padding: 14px 16px; color: #ff6666; font-size: 0.88rem; margin-top: 14px; display: none; }
+  .erro.visible { display: block; }
+  .aviso { font-size: 0.72rem; color: #444; margin-top: 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Série de Pagamentos</h1>
+    <p class="subtitle">Gerencie e calcule séries de pagamentos uniformes ou irregulares com vencimentos e status.</p>
+    <p class="brand"><span class="s">suporte</span><span class="a">ADV</span>.br — Ferramentas para Advogados</p>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Tipo de Série</div>
+    <div class="tabs">
+      <div class="tab ativo" id="tab-uniforme" onclick="setTab('uniforme')">Uniforme (parcelas iguais)</div>
+      <div class="tab" id="tab-irregular" onclick="setTab('irregular')">Irregular (parcelas livres)</div>
+    </div>
+
+    <div class="info-box" id="info-tipo">
+      <b>Uniforme:</b> Todas as parcelas têm o mesmo valor. Informe o valor, periodicidade e número de parcelas.
+    </div>
+
+    <!-- Painel uniforme -->
+    <div id="painel-uniforme">
+      <div class="card-label">Dados da Série</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Valor de cada parcela (R$)</label>
+          <input type="number" id="u-valor" placeholder="Ex: 1500,00" step="0.01" min="0">
+        </div>
+        <div class="field">
+          <label>Número de parcelas</label>
+          <input type="number" id="u-num" placeholder="Ex: 12" min="1" max="600" value="12">
+        </div>
+        <div class="field">
+          <label>Data da 1ª parcela</label>
+          <input type="date" id="u-data">
+        </div>
+        <div class="field">
+          <label>Periodicidade</label>
+          <select id="u-periodo">
+            <option value="7">Semanal</option>
+            <option value="15">Quinzenal</option>
+            <option value="30" selected>Mensal</option>
+            <option value="60">Bimestral</option>
+            <option value="90">Trimestral</option>
+            <option value="180">Semestral</option>
+            <option value="365">Anual</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Taxa de juros (% ao mês) — opcional</label>
+          <input type="number" id="u-taxa" placeholder="0 = sem juros" step="0.01" min="0" value="0">
+        </div>
+        <div class="field">
+          <label>Referência / Descrição</label>
+          <input type="text" id="u-desc" placeholder="Ex: Honorários — Processo 001">
+        </div>
+      </div>
+    </div>
+
+    <!-- Painel irregular -->
+    <div id="painel-irregular" style="display:none">
+      <div class="card-label">Parcelas</div>
+      <div id="parcelas-container"></div>
+      <button class="btn-add" onclick="addParcela()">+ Adicionar parcela</button>
+    </div>
+
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">
+      <button class="calcular" onclick="calcular()">GERAR SÉRIE</button>
+      <button class="limpar" onclick="limpar()">LIMPAR</button>
+    </div>
+  </div>
+
+  <div class="erro" id="erro"></div>
+
+  <div class="resultado" id="resultado">
+    <div class="resultado-titulo" id="res-titulo">Série de Pagamentos</div>
+
+    <div class="res-grid">
+      <div class="res-item" style="grid-column:1/-1;text-align:center">
+        <label style="text-align:center">Total da série</label>
+        <div class="valor grande" id="res-total">—</div>
+      </div>
+      <div class="res-item"><label>Nº de parcelas</label><div class="valor sec" id="res-num">—</div></div>
+      <div class="res-item"><label>Parcelas em aberto</label><div class="valor sec" id="res-aberto">—</div></div>
+      <div class="res-item"><label>Parcelas vencidas</label><div class="valor sec" id="res-vencidas">—</div></div>
+      <div class="res-item"><label>Total pago</label><div class="valor sec" id="res-pago">—</div></div>
+      <div class="res-item"><label>Total em aberto</label><div class="valor" id="res-em-aberto">—</div></div>
+      <div class="res-item"><label>Total vencido</label><div class="valor" style="color:#ff4444" id="res-total-vencido">—</div></div>
+    </div>
+
+    <hr class="divider">
+
+    <details class="tabela-wrap" open>
+      <summary>Ver todas as parcelas</summary>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Vencimento</th>
+            <th>Valor</th>
+            <th>Status</th>
+            <th>Dias</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-body"></tbody>
+      </table>
+    </details>
+
+    <p class="aviso">⚠️ O status das parcelas é calculado em relação à data de hoje. Parcelas com vencimento anterior a hoje são marcadas como "Vencida".</p>
+  </div>
+
+</div>
+
+<script>
+let modoAtual = 'uniforme';
+let numParcelas = 0;
+
+const infoTipos = {
+  uniforme: '<b>Uniforme:</b> Todas as parcelas têm o mesmo valor. Informe o valor, periodicidade e número de parcelas.',
+  irregular: '<b>Irregular:</b> Cada parcela pode ter valor e data diferentes. Útil para acordos com parcelas variadas.',
+};
+
+function setTab(modo) {
+  modoAtual = modo;
+  document.getElementById('tab-uniforme').className = 'tab' + (modo === 'uniforme' ? ' ativo' : '');
+  document.getElementById('tab-irregular').className = 'tab' + (modo === 'irregular' ? ' ativo' : '');
+  document.getElementById('painel-uniforme').style.display = modo === 'uniforme' ? '' : 'none';
+  document.getElementById('painel-irregular').style.display = modo === 'irregular' ? '' : 'none';
+  document.getElementById('info-tipo').innerHTML = infoTipos[modo];
+}
+
+function fmtMoeda(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtData(d) {
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function addParcela(valor = '', data = '') {
+  numParcelas++;
+  const id = numParcelas;
+  const div = document.createElement('div');
+  div.className = 'parcela-row';
+  div.id = `parc-${id}`;
+  div.innerHTML = `
+    <div class="num-badge">${id}</div>
+    <div class="field">
+      <label>Vencimento</label>
+      <input type="date" id="pi-data-${id}" value="${data}">
+    </div>
+    <div class="field">
+      <label>Valor R$</label>
+      <input type="number" id="pi-valor-${id}" placeholder="0,00" step="0.01" min="0" value="${valor}">
+    </div>
+    <button class="btn-rem" onclick="remParcela(${id})">✕</button>`;
+  document.getElementById('parcelas-container').appendChild(div);
+}
+
+function remParcela(id) {
+  const el = document.getElementById(`parc-${id}`);
+  if (el) el.remove();
+  if (document.querySelectorAll('.parcela-row').length === 0) addParcela();
+}
+
+function showErro(msg) {
+  document.getElementById('erro').textContent = msg;
+  document.getElementById('erro').classList.add('visible');
+  document.getElementById('resultado').classList.remove('visible');
+}
+function hideErro() { document.getElementById('erro').classList.remove('visible'); }
+
+function limpar() {
+  document.getElementById('resultado').classList.remove('visible');
+  hideErro();
+  if (modoAtual === 'irregular') {
+    document.getElementById('parcelas-container').innerHTML = '';
+    numParcelas = 0;
+    addParcela();
+  }
+}
+
+function calcular() {
+  hideErro();
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const linhas = [];
+
+  if (modoAtual === 'uniforme') {
+    const valor = parseFloat(document.getElementById('u-valor').value);
+    const num = parseInt(document.getElementById('u-num').value);
+    const dataStr = document.getElementById('u-data').value;
+    const periodo = parseInt(document.getElementById('u-periodo').value);
+    const taxa = parseFloat(document.getElementById('u-taxa').value) || 0;
+
+    if (!valor || valor <= 0) return showErro('Informe o valor da parcela.');
+    if (!num || num < 1) return showErro('Informe o número de parcelas.');
+    if (!dataStr) return showErro('Informe a data da 1ª parcela.');
+
+    for (let i = 0; i < num; i++) {
+      const d = new Date(dataStr + 'T12:00:00');
+      d.setDate(d.getDate() + periodo * i);
+      const juros = taxa > 0 ? valor * (taxa / 100) * i : 0;
+      linhas.push({ num: i + 1, data: d, valor: valor + juros });
+    }
+  } else {
+    const rows = document.querySelectorAll('.parcela-row');
+    rows.forEach(row => {
+      const id = row.id.replace('parc-', '');
+      const dataStr = document.getElementById(`pi-data-${id}`).value;
+      const valor = parseFloat(document.getElementById(`pi-valor-${id}`).value);
+      if (dataStr && valor > 0) {
+        linhas.push({ num: linhas.length + 1, data: new Date(dataStr + 'T12:00:00'), valor });
+      }
+    });
+    if (linhas.length === 0) return showErro('Adicione ao menos uma parcela válida.');
+  }
+
+  linhas.sort((a, b) => a.data - b.data);
+
+  let totalSerie = 0, totalPago = 0, totalAberto = 0, totalVencido = 0;
+  let numAberto = 0, numVencidas = 0;
+
+  const desc = document.getElementById('u-desc')?.value || '';
+
+  // Resultado
+  document.getElementById('res-titulo').textContent = `Série de Pagamentos${desc ? ' — ' + desc : ''}`;
+
+  const tbody = document.getElementById('tabela-body');
+  tbody.innerHTML = '';
+
+  linhas.forEach(l => {
+    const diffDias = Math.ceil((l.data - hoje) / 86400000);
+    let status, statusCls, diasTxt;
+
+    if (diffDias < 0) {
+      status = 'Vencida'; statusCls = 'atrasado';
+      diasTxt = `${Math.abs(diffDias)}d atrás`;
+      totalVencido += l.valor; numVencidas++;
+    } else if (diffDias === 0) {
+      status = 'Hoje'; statusCls = 'hoje';
+      diasTxt = 'Hoje';
+      totalAberto += l.valor; numAberto++;
+    } else {
+      status = 'A vencer'; statusCls = 'vencer';
+      diasTxt = `em ${diffDias}d`;
+      totalAberto += l.valor; numAberto++;
+    }
+
+    totalSerie += l.valor;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${l.num}</td>
+      <td>${fmtData(l.data)}</td>
+      <td class="dest">${fmtMoeda(l.valor)}</td>
+      <td><span class="status-badge ${statusCls}">${status}</span></td>
+      <td style="color:#555;font-size:0.78rem">${diasTxt}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Total
+  const trT = document.createElement('tr');
+  trT.className = 'total-row';
+  trT.innerHTML = `<td colspan="2">TOTAL (${linhas.length} parcelas)</td><td>${fmtMoeda(totalSerie)}</td><td colspan="2">—</td>`;
+  tbody.appendChild(trT);
+
+  document.getElementById('res-total').textContent = fmtMoeda(totalSerie);
+  document.getElementById('res-num').textContent = linhas.length + ' parcelas';
+  document.getElementById('res-aberto').textContent = numAberto;
+  document.getElementById('res-vencidas').textContent = numVencidas;
+  document.getElementById('res-pago').textContent = fmtMoeda(totalPago);
+  document.getElementById('res-em-aberto').textContent = fmtMoeda(totalAberto);
+  document.getElementById('res-total-vencido').textContent = fmtMoeda(totalVencido);
+
+  document.getElementById('resultado').classList.add('visible');
+}
+
+// Init
+const hoje2 = new Date();
+document.getElementById('u-data').value = hoje2.toISOString().split('T')[0];
+addParcela('', hoje2.toISOString().split('T')[0]);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const f = document.activeElement;
+    if (f && f.tagName === 'INPUT') calcular();
+  }
+});
+</script>
+</body>
+</html>
